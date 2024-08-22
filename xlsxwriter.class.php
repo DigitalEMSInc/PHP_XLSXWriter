@@ -375,6 +375,8 @@ class XLSXWriter
 			$file->write('<c r="'.$cell_name.'" s="'.$cell_style_idx.'" t="n"><v>'.intval(self::convert_date_time($value)).'</v></c>');
 		} elseif ($num_format_type=='n_datetime') {
 			$file->write('<c r="'.$cell_name.'" s="'.$cell_style_idx.'" t="n"><v>'.self::convert_date_time($value).'</v></c>');
+		} elseif ($num_format_type=='n_time') {
+			$file->write('<c r="'.$cell_name.'" s="'.$cell_style_idx.'" t="n"><v>'.self::convert_time($value).'</v></c>');
 		} elseif ($num_format_type=='n_numeric') {
 			$file->write('<c r="'.$cell_name.'" s="'.$cell_style_idx.'" t="n"><v>'.self::xmlspecialchars($value).'</v></c>');//int,float,currency
 		} elseif ($num_format_type=='n_string') {
@@ -782,6 +784,7 @@ class XLSXWriter
 		if ($num_format=='GENERAL') return 'n_auto';
 		if ($num_format=='@') return 'n_string';
 		if ($num_format=='0') return 'n_numeric';
+        if ($num_format=='HH:MM:SS') return 'n_time';
 		if (preg_match('/[H]{1,2}:[M]{1,2}(?![^"]*+")/i', $num_format)) return 'n_datetime';
 		if (preg_match('/[M]{1,2}:[S]{1,2}(?![^"]*+")/i', $num_format)) return 'n_datetime';
 		if (preg_match('/[Y]{2,4}(?![^"]*+")/i', $num_format)) return 'n_date';
@@ -834,6 +837,18 @@ class XLSXWriter
 			$haystack[] = $needle;
 		}
 		return $existing_idx;
+	}
+	//------------------------------------------------------------------
+	public static function convert_time($time_input)
+	{
+		if (preg_match("/^([0-1]?\d|2[0-3])(?::([0-5]?\d))?(?::([0-5]?\d))?$/", $time_input)) {
+			preg_match("/(\d+):(\d{2}):(\d{2})/", $time_input, $matches);
+			list($junk,$hour,$min,$sec) = $matches;
+			$seconds = ( $hour * 60 * 60 + $min * 60 + $sec ) / ( 24 * 60 * 60 );
+			return $seconds;
+		} else {
+			return 0;
+		}
 	}
 	//------------------------------------------------------------------
 	public static function convert_date_time($date_input) //thanks to Excel::Writer::XLSX::Worksheet.pm (perl)
